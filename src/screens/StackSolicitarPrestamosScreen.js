@@ -1,17 +1,63 @@
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-export default function StackSolicitarPrestamosScreen() {
+export default function StackSolicitarPrestamosScreen({ route }) {
+  const { nombre, tipo, numero_cuenta, saldo, transacciones } = route.params || {};
+
+  const [monto, setMonto] = useState('');
+  const [plazo, setPlazo] = useState('');
+  const [responseMessage, setResponseMessage] = useState('');
+
+  const solicitarPrestamo = () => {
+    fetch('http://localhost:3000/solicitarPrestamo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+        monto: parseFloat(monto),
+        plazo: parseInt(plazo),
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setResponseMessage(data.message);
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
   return (
     <View style={styles.contenedor}>
       <View style={styles.contenedorSolicita}>
         <Image source={require('../../assets/LogoPrestamos.png')} style={styles.logo}></Image>
         <Text style={styles.textoSolicita}>Solicitar prestamos</Text>
-        <TextInput style={styles.input} placeholder='Monto' />
-        <TextInput style={styles.input} placeholder='Plazo(en meses)' />
-        <TouchableOpacity style={styles.botonSolicita}>
+        <TextInput
+          style={styles.input}
+          placeholder='Monto'
+          value={monto}
+          onChangeText={setMonto}
+          keyboardType='numeric'
+        />
+        <TextInput
+          style={styles.input}
+          placeholder='Plazo(en meses)'
+          value={plazo}
+          onChangeText={setPlazo}
+          keyboardType='numeric'
+        />
+        <TouchableOpacity style={styles.botonSolicita} onPress={solicitarPrestamo}>
           <Text style={styles.botonTexto}>Solicitar</Text>
         </TouchableOpacity>
+        <Text>{responseMessage}</Text>
       </View>
 
       <StatusBar style='auto' />

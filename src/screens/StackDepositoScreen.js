@@ -1,16 +1,55 @@
 import { StatusBar } from 'expo-status-bar';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
 
-export default function StackDepositoScreen() {
+export default function StackDepositoScreen({ route }) {
+  const { nombre, tipo, numero_cuenta, saldo, transacciones } = route.params || {};
+
+  const [monto, setMonto] = useState('');
+  const [responseMessage, setResponseMessage] = useState('');
+
+  const realizarDepositos = () => {
+    fetch('http://localhost:3000/depositar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+        monto: parseFloat(monto),
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setResponseMessage('Deposito realizado con éxito');
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
+
   return (
     <View style={styles.contenedor}>
       <View style={styles.contenedorDepositar}>
         <Image source={require('../../assets/LogoDepositar.png')} style={styles.logo}></Image>
         <Text style={styles.textoDepositar}>Depositos</Text>
-        <TextInput style={styles.input} placeholder='Monto' />
-        <TouchableOpacity style={styles.botonDeposito}>
+        <TextInput
+          style={styles.input}
+          placeholder='Monto'
+          value={monto}
+          onChangeText={setMonto}
+          keyboardType='numeric'
+        />
+        <TouchableOpacity style={styles.botonDeposito} onPress={realizarDepositos}>
           <Text style={styles.botonTexto}>Depositar</Text>
         </TouchableOpacity>
+        <Text>{responseMessage}</Text>
       </View>
 
       <StatusBar style='auto' />

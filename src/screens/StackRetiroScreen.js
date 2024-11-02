@@ -1,16 +1,55 @@
 import { StatusBar } from 'expo-status-bar';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
 
-export default function StackRetiroScreen() {
+export default function StackRetiroScreen({ route }) {
+  const { nombre, tipo, numero_cuenta, saldo, transacciones } = route.params || {};
+
+  const [monto, setMonto] = useState('');
+  const [responseMessage, setResponseMessage] = useState('');
+
+  const realizarRetiro = () => {
+    fetch('http://localhost:3000/retirar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+        monto: parseFloat(monto),
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setResponseMessage('Retiro realizado con éxito');
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
+
   return (
     <View style={styles.contenedor}>
       <View style={styles.contenedorRetirar}>
         <Image source={require('../../assets/LogoRetirar.png')} style={styles.logo}></Image>
         <Text style={styles.textoRetirar}>Retiros</Text>
-        <TextInput style={styles.input} placeholder='Monto' />
-        <TouchableOpacity style={styles.botonRetiro}>
+        <TextInput
+          style={styles.input}
+          placeholder='Monto'
+          value={monto}
+          onChangeText={setMonto}
+          keyboardType='numeric'
+        />
+        <TouchableOpacity style={styles.botonRetiro} onPress={realizarRetiro}>
           <Text style={styles.botonTexto}>Retirar</Text>
         </TouchableOpacity>
+        <Text>{responseMessage}</Text>
       </View>
 
       <StatusBar style='auto' />

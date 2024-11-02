@@ -2,10 +2,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { Image} from 'react-native';
+import { Image } from 'react-native';
 
 //screen
+import Inicio from './src/components/Inicio';
 import Login from './src/components/Login';
+import Registro from './src/components/Registro';
 import HomeScreen from './src/screens/HomeScreen';
 import PrestamosScreen from './src/screens/PrestamosScreen';
 import ReportesScreen from './src/screens/ReportesScreen';
@@ -15,48 +17,90 @@ import StackRetiroScreen from './src/screens/StackRetiroScreen';
 import StackSolicitarPrestamosScreen from './src/screens/StackSolicitarPrestamosScreen';
 import StackTransferenciaScreen from './src/screens/StackTransferenciaScreen';
 import TransferenciasScreen from './src/screens/TransferenciasScreen';
-import Registro from './src/components/Registro';
-import Inicio from './src/components/Inicio';
 
 const TabNav = createBottomTabNavigator();
 const StackNav = createNativeStackNavigator();
 
-function HomeStack() {
+function HomeStack({ route }) {
+  const { nombre, tipo, numero_cuenta, } = route.params || {};
   return (
     <StackNav.Navigator initialRouteName='Home'>
-      <StackNav.Screen name='HomeScreen' component={HomeScreen} options={{ headerShown: false }} />
+      <StackNav.Screen
+        name='HomeLogin'
+        component={HomeScreen}
+        options={{ headerShown: false }}
+        initialParams={{ nombre, tipo, numero_cuenta,  }}
+      />
     </StackNav.Navigator>
   );
 }
 
-function TransferenciasStack() {
+function TransferenciasStack({ route }) {
+  const { nombre, tipo, numero_cuenta, } = route.params || {};
   return (
     <StackNav.Navigator initialRouteName='Transferencias'>
-      <StackNav.Screen name='TransferenciasScreen' component={TransferenciasScreen} options={{ headerShown: false }} />
-      <StackNav.Screen name='Transferir' component={StackTransferenciaScreen} />
-      <StackNav.Screen name='Depositar' component={StackDepositoScreen} />
-      <StackNav.Screen name='Retirar' component={StackRetiroScreen} />
+      <StackNav.Screen
+        name='TransferenciasScreen'
+        component={TransferenciasScreen}
+        initialParams={{ nombre, tipo, numero_cuenta,}}
+        options={{ headerShown: false }}
+      />
+      <StackNav.Screen
+        name='Transferir'
+        component={StackTransferenciaScreen}
+        initialParams={{ nombre, tipo, numero_cuenta,  }}
+      />
+      <StackNav.Screen
+        name='Depositar'
+        component={StackDepositoScreen}
+        initialParams={{ nombre, tipo, numero_cuenta, }}
+      />
+      <StackNav.Screen
+        name='Retirar'
+        component={StackRetiroScreen}
+        initialParams={{ nombre, tipo, numero_cuenta, }}
+      />
     </StackNav.Navigator>
   );
 }
-function PrestamosStack() {
+function PrestamosStack({ route }) {
+  const { nombre, tipo, numero_cuenta} = route.params || {};
   return (
     <StackNav.Navigator initialRouteName='Prestamos'>
-      <StackNav.Screen name='PrestamosScreen' component={PrestamosScreen} options={{ headerShown: false }} />
-      <StackNav.Screen name='SolicitarPrestamos' component={StackSolicitarPrestamosScreen} />
-      <StackNav.Screen name='DeudaPrestamo' component={StackDeudaPrestamoScreen} />
+      <StackNav.Screen
+        name='PrestamosScreen'
+        component={PrestamosScreen}
+        initialParams={{ nombre, tipo, numero_cuenta,  }}
+        options={{ headerShown: false }}
+      />
+      <StackNav.Screen
+        name='SolicitarPrestamos'
+        component={StackSolicitarPrestamosScreen}
+        initialParams={{ nombre, tipo, numero_cuenta, }}
+      />
+      <StackNav.Screen
+        name='DeudaPrestamo'
+        component={StackDeudaPrestamoScreen}
+        initialParams={{ nombre, tipo, numero_cuenta, }}
+      />
     </StackNav.Navigator>
   );
 }
-function ReportesStack() {
+function ReportesStack({ route }) {
+  const { nombre, tipo, numero_cuenta, } = route.params || {};
   return (
     <StackNav.Navigator initialRouteName='Reportes'>
-      <StackNav.Screen name='ReportesScreen' component={ReportesScreen} options={{ headerShown: false }} />
+      <StackNav.Screen
+        name='ReportesScreen'
+        component={ReportesScreen}
+        initialParams={{ nombre, tipo, numero_cuenta }}
+        options={{ headerShown: false }}
+      />
     </StackNav.Navigator>
   );
 }
 
-function MyTabs() {
+function MyTabs({ route }) {
   return (
     <TabNav.Navigator
       initialRouteName='Home'
@@ -65,6 +109,7 @@ function MyTabs() {
       <TabNav.Screen
         name='Home'
         component={HomeStack}
+        initialParams={route.params}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Image
@@ -77,6 +122,7 @@ function MyTabs() {
       <TabNav.Screen
         name='Transferencias'
         component={TransferenciasStack}
+        initialParams={route.params}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Image
@@ -89,6 +135,7 @@ function MyTabs() {
       <TabNav.Screen
         name='Prestamos'
         component={PrestamosStack}
+        initialParams={route.params}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Image
@@ -101,6 +148,7 @@ function MyTabs() {
       <TabNav.Screen
         name='Reportes'
         component={ReportesStack}
+        initialParams={route.params}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Image
@@ -112,8 +160,6 @@ function MyTabs() {
       />
     </TabNav.Navigator>
   );
-
-  
 }
 function Principal() {
   return (

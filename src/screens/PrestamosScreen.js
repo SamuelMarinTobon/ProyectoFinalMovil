@@ -1,9 +1,57 @@
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
 
-export default function PrestamosScreen() {
+
+
+
+export default function PrestamosScreen({ route }) {
+  const { nombre, tipo, numero_cuenta} = route.params || {};
+   const [saldo1, setSaldo] = useState(0);
   const navigation = useNavigation();
+
+
+  const obtenerSaldo = () => {
+    fetch('http://localhost:3000/saldo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setSaldo(data.saldo);
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
+  useEffect(() => {
+    // Llama a obtenerSaldo al cargar la pantalla
+    obtenerSaldo();
+
+    // Escucha el evento cuando la pantalla está enfocada
+    const unsubscribe = navigation.addListener('focus', () => {
+      obtenerSaldo(); // Actualiza el saldo cada vez que la pantalla se enfoca
+    });
+
+    // Limpia el evento cuando el componente se desmonta
+    return unsubscribe;
+  }, [navigation]);
+
+
+
+
   return (
     <View style={styles.contenedor}>
       <View style={styles.contenedorSuperior}>
@@ -13,8 +61,8 @@ export default function PrestamosScreen() {
         <View style={styles.contenedorInfo}>
           <Text style={styles.textoInfoCuenta}>Cuenta Corriente</Text>
           <Text style={styles.textoInfo}>Numero cuenta:</Text>
-          <Text style={styles.textoInfo}>1234-56780</Text>
-          <Text style={styles.textoInfo}>Saldo: 500.000,00</Text>
+          <Text style={styles.textoInfo}>{numero_cuenta}</Text>
+          <Text style={styles.textoInfo}>Saldo: {saldo1}</Text>
         </View>
       </View>
       <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('SolicitarPrestamos')}>

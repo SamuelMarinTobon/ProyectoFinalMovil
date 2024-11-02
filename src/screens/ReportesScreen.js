@@ -1,28 +1,118 @@
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { Image, StyleSheet, Text, FlatList, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
 
-const historialTransferencias = [
-];
-
-const Ingresos = [
-  { transaccion_id: '1', tipo: 'Transferencia', monto: 1200.0, fecha: '2024-10-03' },
-  { transaccion_id: '2', tipo: 'Transferencia', monto: 1000.0, fecha: '2024-10-07' },
-  { transaccion_id: '3', tipo: 'Depósito', monto: 1500.0, fecha: '2024-10-01' },
-  { transaccion_id: '4', tipo: 'Depósito', monto: 2500.0, fecha: '2024-10-04' },
-  { transaccion_id: '5', tipo: 'Depósito', monto: 1800.0, fecha: '2024-10-08' },
-];
-
-const retiros = [
-  { transaccion_id: '6', tipo: 'Retiro', monto: 500.0, fecha: '2024-10-02' },
-  { transaccion_id: '7', tipo: 'Retiro', monto: 300.0, fecha: '2024-10-06' },
-  { transaccion_id: '8', tipo: 'Retiro', monto: 700.0, fecha: '2024-10-10' },
-];
-
-
-
-export default function ReportesScreen() {
+export default function ReportesScreen({ route }) {
+  const { nombre, tipo, numero_cuenta} = route.params || {};
   const navigation = useNavigation();
+   const [saldo1, setSaldo] = useState(0);
+
+  const [ingresos, setIngresos] = useState('');
+  const [egresos, setEgresos] = useState('');
+  const [deudas, setDeudas] = useState('');
+
+
+  const obtenerSaldo = () => {
+    fetch('http://localhost:3000/saldo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setSaldo(data.saldo);
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
+  const historicoIngresos = () => {
+    fetch('http://localhost:3000/historicoIngresos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setIngresos(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const historicoEgresos = () => {
+    fetch('http://localhost:3000/historicoEgresos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setEgresos(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const historicoDeudas = () => {
+    fetch('http://localhost:3000/historicoDeudas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setDeudas(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    // Ejecuta las funciones al cargar la pantalla
+    historicoIngresos();
+    historicoEgresos();
+    historicoDeudas();
+    obtenerSaldo();
+
+    // Agrega un listener para actualizar los datos cuando la pantalla se enfoque
+    const unsubscribe = navigation.addListener('focus', () => {
+      historicoIngresos();
+      historicoEgresos();
+      historicoDeudas();
+      obtenerSaldo();
+    });
+
+    // Limpia el listener cuando el componente se desmonta
+    return unsubscribe;
+  }, [navigation, numero_cuenta]);
+
   return (
     <View style={styles.contenedor}>
       <View style={styles.contenedorSuperior}>
@@ -32,8 +122,8 @@ export default function ReportesScreen() {
         <View style={styles.contenedorInfo}>
           <Text style={styles.textoInfoCuenta}>Cuenta Corriente</Text>
           <Text style={styles.textoInfo}>Numero cuenta:</Text>
-          <Text style={styles.textoInfo}>1234-56780</Text>
-          <Text style={styles.textoInfo}>Saldo: 500.000,00</Text>
+          <Text style={styles.textoInfo}>{numero_cuenta}</Text>
+          <Text style={styles.textoInfo}>Saldo: {saldo1}</Text>
         </View>
       </View>
       <View style={styles.contenedorReportesBancarios}>
@@ -42,8 +132,8 @@ export default function ReportesScreen() {
       <View style={styles.contenedorHistorial}>
         <Text style={styles.textoHistorial}>Historial de Ingresos</Text>
         <FlatList
-          data={Ingresos}
-          keyExtractor={(item) => item.transaccion_id}
+          data={ingresos}
+          keyExtractor={(item) => item.transaccion_id.toString()}
           renderItem={({ item }) => (
             <View style={styles.contenedorTransferencia}>
               <View style={styles.contenedorInfoTransferencia}>
@@ -57,8 +147,8 @@ export default function ReportesScreen() {
       <View style={styles.contenedorHistorial}>
         <Text style={styles.textoHistorial}>Historial de Egresos</Text>
         <FlatList
-          data={retiros}
-          keyExtractor={(item) => item.transaccion_id}
+          data={egresos}
+          keyExtractor={(item) => item.transaccion_id.toString()}
           renderItem={({ item }) => (
             <View style={styles.contenedorTransferencia}>
               <View style={styles.contenedorInfoTransferencia}>
@@ -70,14 +160,14 @@ export default function ReportesScreen() {
         />
       </View>
       <View style={styles.contenedorHistorial}>
-        <Text style={styles.textoHistorial}>Historial de  Deudas</Text>
+        <Text style={styles.textoHistorial}>Historial de Deudas</Text>
         <FlatList
-          data={retiros}
-          keyExtractor={(item) => item.transaccion_id}
+          data={deudas}
+          keyExtractor={(item) => item.prestamo_id.toString()}
           renderItem={({ item }) => (
             <View style={styles.contenedorTransferencia}>
               <View style={styles.contenedorInfoTransferencia}>
-                <Text style={styles.TextoFecha}>{item.fecha}</Text>
+                <Text style={styles.TextoFecha}>{item.fecha_solicitud}</Text>
                 <Text style={styles.transferenciaMonto}>{item.monto} </Text>
               </View>
             </View>

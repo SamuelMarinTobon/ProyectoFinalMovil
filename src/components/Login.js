@@ -1,12 +1,46 @@
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
 
 export default function Login() {
   const navigation = useNavigation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [responseMessage, setResponseMessage] = useState('');
 
   const BotonLogin = () => {
-    navigation.navigate('HomeLogin');
+    fetch('http://localhost:3000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data.user);
+        // Maneja la respuesta del backend
+        if (data.success) {
+          navigation.navigate('HomeLogin', {
+            nombre: data.user.nombre,
+            tipo: data.user.tipo,
+            numero_cuenta: data.user.numero_cuenta,
+            saldo: data.user.saldo,
+            transacciones: data.transacciones,
+          });
+          
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    
   };
 
   const IrRegistro = () => {
@@ -26,11 +60,23 @@ export default function Login() {
         </View>
         <Image source={require('../../assets/Logo.png')} style={styles.logo}></Image>
         <Text style={styles.textoIniciarSesion}>Iniciar Sesion</Text>
-        <TextInput style={styles.input} placeholder='Correo Electronico' />
-        <TextInput style={styles.input} placeholder='Contraseña' secureTextEntry />
+        <TextInput
+          style={styles.input}
+          placeholder='Correo Electronico'
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder='Contraseña'
+          secureTextEntry
+          value={password}
+          onChangeText={(text) => setPassword(text)}
+        />
         <TouchableOpacity style={styles.botonInciarSesion} onPress={BotonLogin}>
           <Text style={styles.botonTexto}>Iniciar Sesion</Text>
         </TouchableOpacity>
+        <Text>{responseMessage}</Text>
         <Text style={styles.Texto}>
           ¿No tienes una cuenta?
           <Text style={styles.linkRegistro} onPress={IrRegistro}>

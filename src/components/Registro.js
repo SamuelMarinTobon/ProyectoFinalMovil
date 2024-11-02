@@ -1,13 +1,49 @@
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
 
 export default function Registro() {
   const navigation = useNavigation();
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [tipocuenta, setTipoCuenta] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmarpassword, setConfirmarPassword] = useState('');
+  const [responseMessage, setResponseMessage] = useState('');
 
   const Registro = () => {
+    if (password !== confirmarpassword) {
+      setResponseMessage('las contraseñas no coinciden');
+    }
+    fetch('http://localhost:3000/registro', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nombre: nombre,
+        email: email,
+        contraseña: password,
+        telefono: telefono,
+        tipocuenta: tipocuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Maneja la respuesta del backend
+        if (data.success) {
+          navigation.navigate('Login');
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
     
-    navigation.navigate('Login');
   };
 
   const IrLogin = () => {
@@ -26,15 +62,28 @@ export default function Registro() {
         </View>
         <Image source={require('../../assets/Logo.png')} style={styles.logo}></Image>
         <Text style={styles.textoRegistro}>Crear Nueva Cuenta</Text>
-        <TextInput style={styles.input} placeholder='Nombre' />
-        <TextInput style={styles.input} placeholder='Correo Electronico' />
-        <TextInput style={styles.input} placeholder='Telefono' />
-        <TextInput style={styles.input} placeholder='Tipo de Cuenta' />
-        <TextInput style={styles.input} placeholder='Contraseña' secureTextEntry />
-        <TextInput style={styles.input} placeholder='Confirmar Contraseña' secureTextEntry />
+        <TextInput style={styles.input} placeholder='Nombre' value={nombre} onChangeText={setNombre} />
+        <TextInput style={styles.input} placeholder='Correo Electronico' value={email} onChangeText={setEmail} />
+        <TextInput style={styles.input} placeholder='Telefono' value={telefono} onChangeText={setTelefono} />
+        <TextInput style={styles.input} placeholder='Tipo de Cuenta' value={tipocuenta} onChangeText={setTipoCuenta} />
+        <TextInput
+          style={styles.input}
+          placeholder='Contraseña'
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder='Confirmar Contraseña'
+          secureTextEntry
+          value={confirmarpassword}
+          onChangeText={setConfirmarPassword}
+        />
         <TouchableOpacity style={styles.botonRegistro} onPress={Registro}>
           <Text style={styles.botonTexto}>Registrarse</Text>
         </TouchableOpacity>
+        <Text>{responseMessage}</Text>
         <Text style={styles.Texto}>
           ¿Ya tienes una cuenta?
           <Text style={styles.linkLogin} onPress={IrLogin}>

@@ -1,13 +1,54 @@
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function HomeScreen() {
-  const navigation = useNavigation();
+export default function HomeScreen({ route }) {
+  const [saldo1, setSaldo] = useState(0);
+  const { nombre, tipo, numero_cuenta } = route.params || {};
   
+  const navigation = useNavigation();
+
   const Volver = () => {
     navigation.navigate('Inicio');
   };
+
+  const obtenerSaldo = () => {
+    fetch('http://localhost:3000/saldo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setSaldo(data.saldo);
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
+  useEffect(() => {
+    // Llama a obtenerSaldo al cargar la pantalla
+    obtenerSaldo();
+
+    // Escucha el evento cuando la pantalla está enfocada
+    const unsubscribe = navigation.addListener('focus', () => {
+      obtenerSaldo(); // Actualiza el saldo cada vez que la pantalla se enfoca
+    });
+
+    // Limpia el evento cuando el componente se desmonta
+    return unsubscribe;
+  }, [navigation]);
 
   return (
     <View style={styles.contenedor}>
@@ -26,15 +67,15 @@ export default function HomeScreen() {
         </View>
       </View>
       <View style={styles.contenedorBienvenido}>
-        <Text style={styles.textoNombrePropietario}>Hola Samuel,</Text>
+        <Text style={styles.textoNombrePropietario}>Hola {nombre},</Text>
         <Text style={styles.textoBienvenido}>BIENVENIDO</Text>
       </View>
       <View style={styles.contenedorInformacionBancaria}>
         <Text style={styles.textoInformacion}>Informacion Bancaria</Text>
         <View style={styles.contenedorInformacionCuenta}>
-          <Text style={styles.TextoInformacionCuenta}>Tipo: Cuenta Corriente</Text>
-          <Text style={styles.TextoInformacionCuenta}>Numero: 1234-5678</Text>
-          <Text style={styles.TextoSaldo}>Saldo: 500.000,00</Text>
+          <Text style={styles.TextoInformacionCuenta}>Tipo: Cuenta {tipo}</Text>
+          <Text style={styles.TextoInformacionCuenta}>Numero: {numero_cuenta}</Text>
+          <Text style={styles.TextoSaldo}>Saldo: {saldo1}</Text>
         </View>
       </View>
 

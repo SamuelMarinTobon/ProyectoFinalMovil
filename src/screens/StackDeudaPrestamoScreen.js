@@ -1,17 +1,85 @@
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-export default function StackDeudaPrestamoScreen() {
+export default function StackDeudaPrestamoScreen({ route }) {
+  const { nombre, tipo, numero_cuenta, saldo, transacciones } = route.params || {};
+
+  const [monto, setMonto] = useState('');
+  const [totalDeuda, setTotalDeuda] = useState(0);
+  const [responseMessage, setResponseMessage] = useState('');
+
+  const pagarPrestamo = () => {
+    fetch('http://localhost:3000/pagarPrestamo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+        monto: parseFloat(monto),
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setResponseMessage(data.message);
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
+  const verPrestamos = () => {
+    fetch('http://localhost:3000/verPrestamos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setTotalDeuda(Number(data.totalDeuda));
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
+
+  useEffect(() => {
+    verPrestamos();
+  }, []);
+
   return (
     <View style={styles.contenedor}>
       <View style={styles.contenedorSolicita}>
         <Image source={require('../../assets/LogoPrestamos.png')} style={styles.logo}></Image>
         <Text style={styles.textoSolicita}>Deudas</Text>
-        <Text style={styles.TextoInformacionCuenta}>5,000.00</Text>
-        <TextInput style={styles.input} placeholder='Monto' />
-        <TouchableOpacity style={styles.botonPagar}>
+        <Text style={styles.TextoInformacionCuenta}>{totalDeuda.toFixed(2)}</Text>
+        <TextInput
+          style={styles.input}
+          placeholder='Monto'
+          value={monto}
+          onChangeText={setMonto}
+          keyboardType='numeric'
+        />
+        <TouchableOpacity style={styles.botonPagar} onPress={pagarPrestamo}>
           <Text style={styles.botonTexto}>Pagar</Text>
         </TouchableOpacity>
+        <Text>{responseMessage}</Text>
       </View>
 
       <StatusBar style='auto' />

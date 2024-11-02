@@ -1,25 +1,76 @@
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
 
-const historialTransferencias = [
-  { id: '1', monto: '- $200', destinatario: 'Juan Pérez' },
-  { id: '2', monto: '- $150', destinatario: 'María González' },
-  { id: '3', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '4', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '5', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '6', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '7', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '8', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '9', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '11', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '12', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '13', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '14', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-  { id: '15', monto: '+ $300', destinatario: 'Depósito en efectivo' },
-];
-export default function TrasferenciaScreen() {
+export default function TrasferenciaScreen({ route }) {
+  const [saldo1, setSaldo] = useState(0);
+  const { nombre, tipo, numero_cuenta } = route.params || {};
+  const [transferencias, setTransferencias] = useState('');
+
+
   const navigation = useNavigation();
+
+  const historicoTransferencias = () => {
+    fetch('http://localhost:3000/historicoTransferencias', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setTransferencias(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+
+  const obtenerSaldo = () => {
+    fetch('http://localhost:3000/saldo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        numeroCuenta: numero_cuenta,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setSaldo(data.saldo);
+        } else {
+          setResponseMessage(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setResponseMessage('Error de red o problema en el servidor');
+      });
+  };
+
+  useEffect(() => {
+    // Llama a obtenerSaldo al cargar la pantalla
+    obtenerSaldo();
+    historicoTransferencias();
+
+    // Escucha el evento cuando la pantalla está enfocada
+    const unsubscribe = navigation.addListener('focus', () => {
+      obtenerSaldo();
+      historicoTransferencias(); // Actualiza el saldo cada vez que la pantalla se enfoca
+    });
+
+    // Limpia el evento cuando el componente se desmonta
+    return unsubscribe;
+  }, [navigation, numero_cuenta]);
+  
+  
   return (
     <View style={styles.contenedor}>
       <View style={styles.contenedorSuperior}>
@@ -29,8 +80,8 @@ export default function TrasferenciaScreen() {
         <View style={styles.contenedorInfo}>
           <Text style={styles.textoInfoCuenta}>Cuenta Corriente</Text>
           <Text style={styles.textoInfo}>Numero cuenta:</Text>
-          <Text style={styles.textoInfo}>1234-56780</Text>
-          <Text style={styles.textoInfo}>Saldo: 500.000,00</Text>
+          <Text style={styles.textoInfo}>{numero_cuenta}</Text>
+          <Text style={styles.textoInfo}>Saldo: {saldo1}</Text>
         </View>
       </View>
       <TouchableOpacity style={styles.boton} onPress={() => navigation.navigate('Transferir')}>
@@ -45,12 +96,12 @@ export default function TrasferenciaScreen() {
       <View style={styles.contenedorHistorialTransferencia}>
         <Text style={styles.textoHistorial}>Historial Transferencias</Text>
         <FlatList
-          data={historialTransferencias}
-          keyExtractor={(item) => item.id}
+          data={transferencias}
+          keyExtractor={(item) => item.transaccion_id.toString()}
           renderItem={({ item }) => (
             <View style={styles.contenedorTransferencia}>
               <View style={styles.contenedorInfoTransferencia}>
-                <Text style={styles.TextoDestinatario}>{item.destinatario}</Text>
+                <Text style={styles.TextoDestinatario}>{item.tipo}</Text>
                 <Text style={styles.transferenciaMonto}>{item.monto} </Text>
               </View>
             </View>
@@ -113,9 +164,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-  
+
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 }, 
+    shadowOffset: { width: 0, height: 2 },
   },
   botonTexto: {
     fontFamily: 'monospace',
