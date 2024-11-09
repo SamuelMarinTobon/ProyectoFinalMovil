@@ -37,15 +37,15 @@ export default function PrestamosScreen({ route }) {
   };
 
   useEffect(() => {
-    // Llama a obtenerSaldo al cargar la pantalla
+   
     obtenerSaldo();
 
-    // Escucha el evento cuando la pantalla está enfocada
+    // Actualizar el saldo cada vez que la pantalla se enfoca
     const unsubscribe = navigation.addListener('focus', () => {
-      obtenerSaldo(); // Actualiza el saldo cada vez que la pantalla se enfoca
+      obtenerSaldo();
     });
 
-    // Limpia el evento cuando el componente se desmonta
+    
     return unsubscribe;
   }, [navigation]);
 

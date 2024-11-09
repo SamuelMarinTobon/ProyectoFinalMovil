@@ -56,17 +56,16 @@ export default function TrasferenciaScreen({ route }) {
   };
 
   useEffect(() => {
-    // Llama a obtenerSaldo al cargar la pantalla
     obtenerSaldo();
     historicoTransferencias();
 
-    // Escucha el evento cuando la pantalla está enfocada
+    // Actualizar el saldo cada vez que la pantalla se enfoca
     const unsubscribe = navigation.addListener('focus', () => {
       obtenerSaldo();
-      historicoTransferencias(); // Actualiza el saldo cada vez que la pantalla se enfoca
+      historicoTransferencias();
     });
 
-    // Limpia el evento cuando el componente se desmonta
+    
     return unsubscribe;
   }, [navigation, numero_cuenta]);
   

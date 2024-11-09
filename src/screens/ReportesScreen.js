@@ -4,14 +4,13 @@ import { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
 
 export default function ReportesScreen({ route }) {
-  const { nombre, tipo, numero_cuenta} = route.params || {};
+  const { nombre, tipo, numero_cuenta } = route.params || {};
   const navigation = useNavigation();
-   const [saldo1, setSaldo] = useState(0);
+  const [saldo1, setSaldo] = useState(0);
 
   const [ingresos, setIngresos] = useState('');
   const [egresos, setEgresos] = useState('');
   const [deudas, setDeudas] = useState('');
-
 
   const obtenerSaldo = () => {
     fetch('http://localhost:3000/saldo', {
@@ -95,13 +94,13 @@ export default function ReportesScreen({ route }) {
   };
 
   useEffect(() => {
-    // Ejecuta las funciones al cargar la pantalla
+    
     historicoIngresos();
     historicoEgresos();
     historicoDeudas();
     obtenerSaldo();
 
-    // Agrega un listener para actualizar los datos cuando la pantalla se enfoque
+    //listener, actualizar los datos cuando la pantalla se enfoque
     const unsubscribe = navigation.addListener('focus', () => {
       historicoIngresos();
       historicoEgresos();
@@ -109,7 +108,7 @@ export default function ReportesScreen({ route }) {
       obtenerSaldo();
     });
 
-    // Limpia el listener cuando el componente se desmonta
+    
     return unsubscribe;
   }, [navigation, numero_cuenta]);
 
@@ -137,7 +136,7 @@ export default function ReportesScreen({ route }) {
           renderItem={({ item }) => (
             <View style={styles.contenedorTransferencia}>
               <View style={styles.contenedorInfoTransferencia}>
-                <Text style={styles.TextoFecha}>{item.fecha}</Text>
+                <Text style={styles.TextoFecha}> {new Date(item.fecha).toLocaleDateString('es-ES')}</Text>
                 <Text style={styles.transferenciaMonto}>{item.monto} </Text>
               </View>
             </View>
@@ -152,7 +151,7 @@ export default function ReportesScreen({ route }) {
           renderItem={({ item }) => (
             <View style={styles.contenedorTransferencia}>
               <View style={styles.contenedorInfoTransferencia}>
-                <Text style={styles.TextoFecha}>{item.fecha}</Text>
+                <Text style={styles.TextoFecha}> {new Date(item.fecha).toLocaleDateString('es-ES')}</Text>
                 <Text style={styles.transferenciaMonto}>{item.monto} </Text>
               </View>
             </View>
@@ -167,7 +166,7 @@ export default function ReportesScreen({ route }) {
           renderItem={({ item }) => (
             <View style={styles.contenedorTransferencia}>
               <View style={styles.contenedorInfoTransferencia}>
-                <Text style={styles.TextoFecha}>{item.fecha_solicitud}</Text>
+                <Text style={styles.TextoFecha}>{new Date(item.fecha_solicitud).toLocaleDateString('es-ES')}</Text>
                 <Text style={styles.transferenciaMonto}>{item.monto} </Text>
               </View>
             </View>

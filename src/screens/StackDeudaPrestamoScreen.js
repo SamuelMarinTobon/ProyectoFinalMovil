@@ -7,6 +7,7 @@ export default function StackDeudaPrestamoScreen({ route }) {
 
   const [monto, setMonto] = useState('');
   const [totalDeuda, setTotalDeuda] = useState(0);
+  const [cuotaMensual, setCuotaMensual] = useState(0);
   const [responseMessage, setResponseMessage] = useState('');
 
   const pagarPrestamo = () => {
@@ -48,6 +49,7 @@ export default function StackDeudaPrestamoScreen({ route }) {
       .then((data) => {
         if (data.success) {
           setTotalDeuda(Number(data.totalDeuda));
+          setCuotaMensual(Number(data.cuota_mensual));
         } else {
           setResponseMessage(data.message);
         }
@@ -58,7 +60,6 @@ export default function StackDeudaPrestamoScreen({ route }) {
       });
   };
 
-
   useEffect(() => {
     verPrestamos();
   }, []);
@@ -68,7 +69,8 @@ export default function StackDeudaPrestamoScreen({ route }) {
       <View style={styles.contenedorSolicita}>
         <Image source={require('../../assets/LogoPrestamos.png')} style={styles.logo}></Image>
         <Text style={styles.textoSolicita}>Deudas</Text>
-        <Text style={styles.TextoInformacionCuenta}>{totalDeuda.toFixed(2)}</Text>
+        <Text style={styles.TextoInformacionCuenta}>cantidad deuda:{totalDeuda.toFixed(2)}</Text>
+        <Text style={styles.TextoInformacionCuenta}>pago minimo mensual permitido: {cuotaMensual.toFixed(2)}</Text>
         <TextInput
           style={styles.input}
           placeholder='Monto'
